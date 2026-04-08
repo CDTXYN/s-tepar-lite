@@ -12,56 +12,63 @@
 
   <pre id="output"></pre>
 
-  <script>
-    function extractPlaceholders(text) {
-      const regex = /{[^}]+}|%[sd]/g;
-      return text.match(regex) || [];
+ <script>
+  function extractPlaceholders(text) {
+    const regex = /{[^}]+}|%[sd]/g;
+    return text.match(regex) || [];
+  }
+
+  function handleFile() {
+    const file = document.getElementById('fileInput').files[0];
+
+    if (!file) {
+      alert("Please upload a file.");
+      return;
     }
 
-    function handleFile() {
-      const file = document.getElementById('fileInput').files[0];
+    const reader = new FileReader();
 
-      if (!file) {
-        alert("Please upload a file.");
-        return;
-      }
+    reader.onload = function(event) {
+      try {
+        const content = event.target.result;
+        const data = JSON.parse(content);
 
-      const reader = new FileReader();
+        const results = [];
 
-      reader.onload = function(event) {
-        try {
-          const content = event.target.result;
-          const data = JSON.parse(content);
+        for (const key in data) {
+          const source = data[key].source || "";
+          const target = data[key].target || "";
 
-          const results = [];
-
-          for (const key in data) {
-            const value = data[key];
-
-            // Missing value check
-            if (!value) {
-              results.push(`❌ Missing value for key: ${key}`);
-              continue;
-            }
-
-            // Placeholder detection
-            const placeholders = extractPlaceholders(value);
-
-            if (placeholders.length > 0) {
-              results.push(`⚠️ ${key} contains placeholders: ${placeholders.join(", ")}`);
-            } else {
-              results.push(`✅ ${key}`);
-            }
+          // Missing translation
+          if (!target) {
+            results.push(`❌ Missing translation for key: ${key}`);
+            continue;
           }
 
-          document.getElementById('output').textContent = results.join('\n');
-        } catch (err) {
-          document.getElementById('output').textContent = "❌ Invalid JSON file.";
-        }
-      };
+          const sourcePH = extractPlaceholders(source);
+          const targetPH = extractPlaceholders(target);
 
-      reader.readAsText(file);
-    }
-  </script>
+          const missing = sourcePH.filter(p => !targetPH.includes(p));
+          const extra = targetPH.filter(p => !sourcePH.includes(p));
+
+          if (missing.length > 0 || extra.length > 0) {
+            results.push(`❌ ${key} mismatch → Missing: [${missing}] Extra: [${extra}]`);
+          } else if (sourcePH.length > 0) {
+            results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
+          } else {
+            results.push(`✅ ${key}`);
+          }
+        }
+
+        document.getElementById('output').textContent = results.join('\n');
+
+      } catch (err) {
+        document.getElementById('output').textContent = "❌ Invalid JSON format.";
+      }
+    };
+
+    reader.readAsText(file);
+  }
+</script>
 </body>
 </html>
