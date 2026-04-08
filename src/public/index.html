@@ -41,10 +41,15 @@
   }
 </style>
 
- <script>
+<script>
   function extractPlaceholders(text) {
     const regex = /{[^}]+}|%[sd]/g;
     return text.match(regex) || [];
+  }
+
+  function calculateExpansion(source, target) {
+    if (!source) return 0;
+    return ((target.length - source.length) / source.length) * 100;
   }
 
   function handleFile() {
@@ -53,10 +58,6 @@
     if (!file) {
       alert("Please upload a file.");
       return;
-    }
-    function calculateExpansion(source, target) {
-  if (!source) return 0;
-  return ((target.length - source.length) / source.length) * 100;
     }
 
     const reader = new FileReader();
@@ -68,51 +69,54 @@
 
         const results = [];
 
+        // ✅ MOVE HERE (outside loop)
+        const issueCounts = {
+          missing: 0,
+          mismatch: 0,
+          expansion: 0
+        };
+
         for (const key in data) {
           const source = data[key].source || "";
           const target = data[key].target || "";
 
-          // Missing translation
-          if (!target) {
-            results.push(`❌ Missing translation for key: ${key}`);
-            continue;
-          }
-
           const sourcePH = extractPlaceholders(source);
           const targetPH = extractPlaceholders(target);
 
-          const missing = sourcePH.filter(p => !targetPH.includes(p));
-          const extra = targetPH.filter(p => !sourcePH.includes(p));
+          const missingPH = sourcePH.filter(p => !targetPH.includes(p));
+          const extraPH = targetPH.filter(p => !sourcePH.includes(p));
 
-         const expansion = calculateExpansion(source, target).toFixed(1);
-          const issueCounts = {
-  missing: 0,
-  mismatch: 0,
-  expansion: 0
-};
+          const expansion = calculateExpansion(source, target).toFixed(1);
 
-if (!target) {
-  issueCounts.missing++;
-  results.push(`❌ Missing translation for key: ${key}`);
-} else if (missing.length > 0 || extra.length > 0) {
-  issueCounts.mismatch++;
-  results.push(`❌ ${key} mismatch → Missing: [${missing}] Extra: [${extra}]`);
-} else if (expansion > 30) {
-  issueCounts.expansion++;
-  results.push(`⚠️ ${key} expansion high: ${expansion}%`);
-}
+          // ✅ SINGLE CLEAN LOGIC FLOW
+          if (!target) {
+            issueCounts.missing++;
+            results.push(`❌ Missing translation for key: ${key}`);
+          } else if (missingPH.length > 0 || extraPH.length > 0) {
+            issueCounts.mismatch++;
+            results.push(`❌ ${key} mismatch → Missing: [${missingPH}] Extra: [${extraPH}]`);
+          } else if (expansion > 30) {
+            issueCounts.expansion++;
+            results.push(`⚠️ ${key} expansion high: ${expansion}%`);
+          } else if (sourcePH.length > 0) {
+            results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
+          } else {
+            results.push(`✅ ${key}`);
+          }
         }
+
+        // ✅ SUMMARY GOES HERE
+        results.push("\n--- QA SUMMARY ---");
+        results.push(`Missing: ${issueCounts.missing}`);
+        results.push(`Mismatches: ${issueCounts.mismatch}`);
+        results.push(`Expansion Issues: ${issueCounts.expansion}`);
+
         document.getElementById('output').textContent = results.join('\n');
 
       } catch (err) {
         document.getElementById('output').textContent = "❌ Invalid JSON format.";
       }
     };
-
-    results.push("\n--- QA SUMMARY ---");
-results.push(`Missing: ${issueCounts.missing}`);
-results.push(`Mismatches: ${issueCounts.mismatch}`);
-results.push(`Expansion Issues: ${issueCounts.expansion}`);
 
     reader.readAsText(file);
   }
