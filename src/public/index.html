@@ -89,20 +89,33 @@
           const expansion = calculateExpansion(source, target).toFixed(1);
 
           // ✅ SINGLE CLEAN LOGIC FLOW
-          if (!target) {
-            issueCounts.missing++;
-            results.push(`❌ Missing translation for key: ${key}`);
-          } else if (missingPH.length > 0 || extraPH.length > 0) {
-            issueCounts.mismatch++;
-            results.push(`❌ ${key} mismatch → Missing: [${missingPH}] Extra: [${extraPH}]`);
-          } else if (source.length > 10 && expansion > 30) {
-            issueCounts.expansion++;
-            results.push(`⚠️ ${key} expansion high: ${expansion}%`);
-          } else if (sourcePH.length > 0) {
-            results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
-          } else {
-            results.push(`✅ ${key}`);
-          }
+         if (!target) {
+  issueCounts.missing++;
+  results.push(`❌ Missing translation for key: ${key}`);
+  results.push(`💡 Suggestion: Provide a translation for "${source}"`);
+} 
+else if (missingPH.length > 0 || extraPH.length > 0) {
+  issueCounts.mismatch++;
+  results.push(`❌ ${key} mismatch → Missing: [${missingPH}] Extra: [${extraPH}]`);
+
+  if (missingPH.length > 0) {
+    results.push(`💡 Suggestion: Add missing placeholders ${missingPH.join(", ")} to target`);
+  }
+  if (extraPH.length > 0) {
+    results.push(`💡 Suggestion: Remove extra placeholders ${extraPH.join(", ")} from target`);
+  }
+} 
+else if (source.length > 10 && expansion > 30) {
+  issueCounts.expansion++;
+  results.push(`⚠️ ${key} expansion high: ${expansion}%`);
+  results.push(`💡 Suggestion: Shorten translation or adjust UI constraints`);
+} 
+else if (sourcePH.length > 0) {
+  results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
+} 
+else {
+  results.push(`✅ ${key}`);
+}
         }
 
         // ✅ SUMMARY GOES HERE
