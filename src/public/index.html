@@ -1,1 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>S-TEPAR Lite</title>
+</head>
+<body>
+  <h1>S-TEPAR Lite</h1>
 
+  <input type="file" id="fileInput" />
+  <button onclick="handleFile()">Run QA Check</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    function handleFile() {
+      const file = document.getElementById('fileInput').files[0];
+
+      if (!file) {
+        alert("Please upload a file.");
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        const content = event.target.result;
+        const data = JSON.parse(content);
+
+        const results = [];
+
+        for (const key in data) {
+          if (!data[key]) {
+            results.push(`❌ Missing value for key: ${key}`);
+          } else {
+            results.push(`✅ ${key}`);
+          }
+        }
+
+        document.getElementById('output').textContent = results.join('\n');
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
