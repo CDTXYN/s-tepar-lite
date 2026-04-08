@@ -80,6 +80,11 @@ if (!target) {
       }
     };
 
+    results.push("\n--- QA SUMMARY ---");
+results.push(`Missing: ${issueCounts.missing}`);
+results.push(`Mismatches: ${issueCounts.mismatch}`);
+results.push(`Expansion Issues: ${issueCounts.expansion}`);
+
     reader.readAsText(file);
   }
 </script>
