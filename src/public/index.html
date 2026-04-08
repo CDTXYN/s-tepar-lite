@@ -95,7 +95,7 @@
           } else if (missingPH.length > 0 || extraPH.length > 0) {
             issueCounts.mismatch++;
             results.push(`❌ ${key} mismatch → Missing: [${missingPH}] Extra: [${extraPH}]`);
-          } else if (expansion > 30) {
+          } else if (source.length > 10 && expansion > 30) {
             issueCounts.expansion++;
             results.push(`⚠️ ${key} expansion high: ${expansion}%`);
           } else if (sourcePH.length > 0) {
