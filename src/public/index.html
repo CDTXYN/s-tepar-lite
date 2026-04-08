@@ -4,496 +4,219 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>S-TEPAR Lite</title>
+
   <style>
-    :root {
-      --bg: #0b1120;
-      --panel: #111827;
-      --panel-soft: #1f2937;
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --border: #334155;
-      --blue: #38bdf8;
-      --blue-soft: #0c4a6e;
-      --green: #22c55e;
-      --green-soft: #052e16;
-      --yellow: #facc15;
-      --yellow-soft: #422006;
-      --red: #ef4444;
-      --red-soft: #450a0a;
-      --shadow: 0 16px 40px rgba(2, 8, 23, 0.5);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      min-height: 100vh;
-      font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top, #172554 0%, var(--bg) 45%);
-      color: var(--text);
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
       display: flex;
       justify-content: center;
-      padding: 32px 16px;
+      padding: 20px;
     }
 
     .app {
-      width: min(960px, 100%);
-      background: linear-gradient(180deg, rgba(17, 24, 39, 0.95), rgba(17, 24, 39, 0.85));
-      border: 1px solid rgba(51, 65, 85, 0.8);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 24px;
-      backdrop-filter: blur(8px);
+      width: 900px;
     }
 
-    .title {
-      margin: 0 0 8px;
-      font-size: clamp(1.5rem, 2.3vw, 2rem);
-      color: #7dd3fc;
-    }
+    h1 { color: #38bdf8; }
 
-    .subtitle {
-      margin: 0 0 20px;
-      color: var(--muted);
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 14px;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .upload-box {
-      border: 1px dashed #475569;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.9);
-      padding: 14px;
-    }
-
-    .upload-box label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    input[type="file"] {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--panel-soft);
-      color: var(--text);
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    .run-btn {
-      height: 44px;
-      border: none;
-      border-radius: 10px;
-      padding: 0 18px;
-      background: linear-gradient(90deg, #0ea5e9, #38bdf8);
-      color: #032036;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      cursor: pointer;
-      transition: transform 0.12s ease, filter 0.2s ease;
-    }
-
-    .run-btn:hover {
-      filter: brightness(1.05);
-      transform: translateY(-1px);
-    }
-
-    .run-btn:active {
-      transform: translateY(0);
+    input, button {
+      padding: 10px;
+      margin-top: 10px;
     }
 
     .summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      display: flex;
       gap: 10px;
-      margin: 0 0 16px;
+      margin: 20px 0;
     }
 
-    .summary-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
+    .summary div {
+      background: #1e293b;
       padding: 10px;
-      background: rgba(15, 23, 42, 0.75);
-    }
-
-    .summary-label {
-      color: var(--muted);
-      font-size: 0.8rem;
-      margin-bottom: 6px;
-    }
-
-    .summary-value {
-      font-size: 1.2rem;
-      font-weight: 700;
+      border-radius: 8px;
+      flex: 1;
     }
 
     .results {
-      max-height: 56vh;
-      overflow: auto;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      background: rgba(15, 23, 42, 0.88);
+      max-height: 400px;
+      overflow-y: auto;
     }
 
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 24px 0;
-    }
-
-    .result-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
+    .card {
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
       margin-bottom: 10px;
-      background: var(--panel);
     }
 
-    .result-card:last-child {
-      margin-bottom: 0;
-    }
+    .error { border-color: red; }
+    .warning { border-color: orange; }
+    .success { border-color: green; }
 
-    .result-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .key-name {
-      font-weight: 700;
-      word-break: break-word;
-    }
-
-    .status-badge {
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 0.74rem;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .detail-list,
-    .suggestion-list {
-      margin: 0;
-      padding-left: 18px;
-    }
-
-    .detail-list li,
-    .suggestion-list li {
-      margin: 5px 0;
-      line-height: 1.3;
-    }
-
-
-    .suggestion-list li {
-      color: #7dd3fc;
-    }
-
-    .section-label {
-      margin: 8px 0 4px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      color: #cbd5e1;
-      text-transform: uppercase;
-    }
-
-    .status-error {
-      border-color: rgba(239, 68, 68, 0.45);
-      background: linear-gradient(180deg, rgba(69, 10, 10, 0.8), rgba(17, 24, 39, 0.9));
-    }
-    .status-error .status-badge {
-      background: var(--red-soft);
-      color: #fecaca;
-      border: 1px solid rgba(239, 68, 68, 0.5);
-    }
-
-    .status-warning {
-      border-color: rgba(250, 204, 21, 0.35);
-      background: linear-gradient(180deg, rgba(66, 32, 6, 0.8), rgba(17, 24, 39, 0.9));
-    }
-    .status-warning .status-badge {
-      background: var(--yellow-soft);
-      color: #fef08a;
-      border: 1px solid rgba(250, 204, 21, 0.45);
-    }
-
-    .status-success {
-      border-color: rgba(34, 197, 94, 0.4);
-      background: linear-gradient(180deg, rgba(5, 46, 22, 0.8), rgba(17, 24, 39, 0.9));
-    }
-    .status-success .status-badge {
-      background: var(--green-soft);
-      color: #bbf7d0;
-      border: 1px solid rgba(34, 197, 94, 0.45);
-    }
-
-    .status-info {
-      border-color: rgba(56, 189, 248, 0.45);
-      background: linear-gradient(180deg, rgba(12, 74, 110, 0.75), rgba(17, 24, 39, 0.9));
-    }
-    .status-info .status-badge {
-      background: var(--blue-soft);
-      color: #bae6fd;
-      border: 1px solid rgba(56, 189, 248, 0.45);
-    }
-
-    @media (max-width: 700px) {
-      .controls {
-        grid-template-columns: 1fr;
-      }
-
-      .summary {
-        grid-template-columns: 1fr;
-      }
-
-      .run-btn {
-        width: 100%;
-      }
+    .badge {
+      float: right;
+      font-size: 12px;
     }
   </style>
 </head>
+
 <body>
-  <main class="app">
-    <h1 class="title">S-TEPAR Lite Localization QA</h1>
-    <p class="subtitle">Upload your localization JSON and run quality checks with a structured dashboard view.</p>
+  <div class="app">
+    <h1>S-TEPAR Lite QA</h1>
 
-    <section class="controls">
-      <div class="upload-box">
-        <label for="fileInput">Localization JSON file</label>
-        <input type="file" id="fileInput" accept="application/json" />
-      </div>
-      <button class="run-btn" onclick="handleFile()">Run QA Check</button>
-    </section>
+    <input type="file" id="fileInput" />
+    <button onclick="handleFile()">Run QA Check</button>
 
-    <section id="summary" class="summary" aria-live="polite"></section>
+    <div id="summary" class="summary"></div>
+    <div id="results" class="results"></div>
+  </div>
 
-    <section id="results" class="results" aria-live="polite">
-      <div class="empty">Results will appear here after running QA.</div>
-    </section>
-  </main>
-
-  <script>
-  function extractPlaceholders(text) {
-    const regex = /{[^}]+}|%[sd]/g;
-    return text.match(regex) || [];
-  }
-
-  function calculateExpansion(source, target) {
-    if (!source) return 0;
-    return ((target.length - source.length) / source.length) * 100;
-  }
-
-  // 🧠 NEW: Core QA engine (clean separation)
-  function runQACheck(data) {
-    const results = [];
-
-    const issueCounts = {
-      missing: 0,
-      mismatch: 0,
-      expansion: 0
-    };
-
-    for (const key in data) {
-      const source = data[key].source || '';
-      const target = data[key].target || '';
-
-      const sourcePH = extractPlaceholders(source);
-      const targetPH = extractPlaceholders(target);
-
-      const missingPH = sourcePH.filter(p => !targetPH.includes(p));
-      const extraPH = targetPH.filter(p => !sourcePH.includes(p));
-
-      const expansionRaw = calculateExpansion(source, target);
-      const expansion = Number(expansionRaw.toFixed(1));
-
-      let result = {
-        key,
-        statusLabel: '',
-        statusClass: '',
-        details: [],
-        suggestions: []
-      };
-
-      // 🔴 Priority 1 — Missing
-      if (!target) {
-        issueCounts.missing++;
-        result.statusLabel = 'Error';
-        result.statusClass = 'error';
-        result.details.push('Missing translation.');
-        result.suggestions.push(`Provide a translation for "${source}".`);
-      }
-
-      // 🔴 Priority 2 — Placeholder mismatch
-      else if (missingPH.length > 0 || extraPH.length > 0) {
-        issueCounts.mismatch++;
-
-        result.statusLabel = 'Error';
-        result.statusClass = 'error';
-
-        result.details.push(
-          `Placeholder mismatch. Missing: [${missingPH.join(', ')}] Extra: [${extraPH.join(', ')}].`
-        );
-
-        if (missingPH.length > 0) {
-          result.suggestions.push(`Add missing placeholders ${missingPH.join(', ')}.`);
-        }
-        if (extraPH.length > 0) {
-          result.suggestions.push(`Remove extra placeholders ${extraPH.join(', ')}.`);
-        }
-      }
-
-      // 🟡 Priority 3 — Expansion risk
-      else if (source.length > 10 && expansion > 30) {
-        issueCounts.expansion++;
-
-        result.statusLabel = 'Warning';
-        result.statusClass = 'warning';
-
-        result.details.push(`Expansion risk: ${expansion}%.`);
-        result.suggestions.push('Shorten translation or adjust UI constraints.');
-      }
-
-      // 🟡 Priority 4 — Placeholder OK
-      else if (sourcePH.length > 0) {
-        result.statusLabel = 'Info';
-        result.statusClass = 'info';
-
-        result.details.push(`Placeholders aligned: ${sourcePH.join(', ')}.`);
-        result.suggestions.push('Maintain placeholder consistency.');
-      }
-
-      // 🟢 Clean
-      else {
-        result.statusLabel = 'Success';
-        result.statusClass = 'success';
-
-        result.details.push('Translation check passed.');
-      }
-
-      results.push(result);
-    }
-
-    return { results, issueCounts };
-  }
-
- function createResultCard(item) {
-  const card = document.createElement('article');
-  card.className = `result-card status-${item.statusClass}`;
-
-  const detailMarkup = item.details
-    .map(d => `<li>${d}</li>`)
-    .join('');
-
-  const suggestionMarkup = item.suggestions.length
-    ? `
-      <p class="section-label">Suggestions</p>
-      <ul class="suggestion-list">
-        ${item.suggestions.map(s => `<li>${s}</li>`).join('')}
-      </ul>
-    `
-    : '';
-
-  card.innerHTML = `
-    <div class="result-head">
-      <div class="key-name">${item.key}</div>
-      <span class="status-badge">${item.statusLabel}</span>
-    </div>
-    <p class="section-label">Details</p>
-    <ul class="detail-list">
-      ${detailMarkup}
-    </ul>
-    ${suggestionMarkup}
-  `;
-
-  return card;
+<script>
+function extractPlaceholders(text) {
+  const regex = /{[^}]+}|%[sd]/g;
+  return text.match(regex) || [];
 }
 
-    card.innerHTML = `
-      <div class="result-head">
-        <div class="key-name">${item.key}</div>
-        <span class="status-badge">${item.statusLabel}</span>
-      </div>
-      <p class="section-label">Details</p>
-      <ul class="detail-list">${detailMarkup}</ul>
-      ${suggestionMarkup}
-    `;
+function calculateExpansion(source, target) {
+  if (!source) return 0;
+  return ((target.length - source.length) / source.length) * 100;
+}
 
-    return card;
-  }
+// 🔥 CORE ENGINE (clean + stable)
+function runQACheck(data) {
+  const cards = [];
 
-  function renderSummary(issueCounts) {
-    document.getElementById('summary').innerHTML = `
-      <div class="summary-card">
-        <div class="summary-label">Missing</div>
-        <div class="summary-value">${issueCounts.missing}</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Mismatches</div>
-        <div class="summary-value">${issueCounts.mismatch}</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Expansion Issues</div>
-        <div class="summary-value">${issueCounts.expansion}</div>
-      </div>
-    `;
-  }
+  const issueCounts = {
+    missing: 0,
+    mismatch: 0,
+    expansion: 0
+  };
 
-  function renderResults(results) {
-    const container = document.getElementById('results');
-    container.innerHTML = '';
+  for (const key in data) {
+    const source = data[key].source || "";
+    const target = data[key].target || "";
 
-    if (!results.length) {
-      container.innerHTML = '<div class="empty">No keys found.</div>';
-      return;
-    }
+    const sourcePH = extractPlaceholders(source);
+    const targetPH = extractPlaceholders(target);
 
-    results.forEach(r => container.appendChild(createResultCard(r)));
-  }
+    const missingPH = sourcePH.filter(p => !targetPH.includes(p));
+    const extraPH = targetPH.filter(p => !sourcePH.includes(p));
 
-  function handleFile() {
-    const file = document.getElementById('fileInput').files[0];
+    const expansion = Number(calculateExpansion(source, target).toFixed(1));
 
-    if (!file) {
-      alert('Please upload a file.');
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = function(event) {
-      try {
-        const data = JSON.parse(event.target.result);
-
-        const { results, issueCounts } = runQACheck(data);
-
-        renderSummary(issueCounts);
-        renderResults(results);
-      } catch (err) {
-        renderSummary({ missing: '-', mismatch: '-', expansion: '-' });
-        document.getElementById('results').innerHTML =
-          '<div class="result-card status-error"><div class="key-name">Invalid JSON</div></div>';
-      }
+    let card = {
+      key,
+      status: '',
+      color: '',
+      details: [],
+      suggestions: []
     };
 
-    reader.readAsText(file);
+    if (!target) {
+      issueCounts.missing++;
+      card.status = 'Error';
+      card.color = 'error';
+      card.details.push('Missing translation.');
+      card.suggestions.push(`Provide translation for "${source}".`);
+    }
+
+    else if (missingPH.length > 0 || extraPH.length > 0) {
+      issueCounts.mismatch++;
+      card.status = 'Error';
+      card.color = 'error';
+
+      card.details.push(`Missing: [${missingPH.join(', ')}] Extra: [${extraPH.join(', ')}]`);
+
+      if (missingPH.length > 0) {
+        card.suggestions.push(`Add placeholders ${missingPH.join(', ')}`);
+      }
+      if (extraPH.length > 0) {
+        card.suggestions.push(`Remove placeholders ${extraPH.join(', ')}`);
+      }
+    }
+
+    else if (source.length > 10 && expansion > 30) {
+      issueCounts.expansion++;
+      card.status = 'Warning';
+      card.color = 'warning';
+
+      card.details.push(`Expansion: ${expansion}%`);
+      card.suggestions.push('Shorten translation or adjust UI.');
+    }
+
+    else if (sourcePH.length > 0) {
+      card.status = 'Warning';
+      card.color = 'warning';
+      card.details.push(`Placeholders OK: ${sourcePH.join(', ')}`);
+    }
+
+    else {
+      card.status = 'Success';
+      card.color = 'success';
+      card.details.push('All checks passed.');
+    }
+
+    cards.push(card);
   }
+
+  return { cards, issueCounts };
+}
+
+// UI rendering
+function renderSummary(counts) {
+  document.getElementById('summary').innerHTML = `
+    <div>Missing: ${counts.missing}</div>
+    <div>Mismatches: ${counts.mismatch}</div>
+    <div>Expansion: ${counts.expansion}</div>
+  `;
+}
+
+function renderCards(cards) {
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+
+  cards.forEach(c => {
+    const el = document.createElement('div');
+    el.className = `card ${c.color}`;
+
+    el.innerHTML = `
+      <strong>${c.key}</strong>
+      <span class="badge">${c.status}</span>
+      <ul>${c.details.map(d => `<li>${d}</li>`).join('')}</ul>
+      ${c.suggestions.length ? `<ul>${c.suggestions.map(s => `<li>💡 ${s}</li>`).join('')}</ul>` : ''}
+    `;
+
+    container.appendChild(el);
+  });
+}
+
+// handler
+function handleFile() {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return alert('Upload a file');
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      const { cards, issueCounts } = runQACheck(data);
+
+      renderSummary(issueCounts);
+      renderCards(cards);
+
+    } catch {
+      alert('Invalid JSON');
+    }
+  };
+
+  reader.readAsText(file);
+}
 </script>
+
 </body>
 </html>
