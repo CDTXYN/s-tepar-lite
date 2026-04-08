@@ -1,16 +1,293 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>S-TEPAR Lite</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #111827;
+      --panel-soft: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #334155;
+      --blue: #38bdf8;
+      --blue-soft: #0c4a6e;
+      --green: #22c55e;
+      --green-soft: #052e16;
+      --yellow: #facc15;
+      --yellow-soft: #422006;
+      --red: #ef4444;
+      --red-soft: #450a0a;
+      --shadow: 0 16px 40px rgba(2, 8, 23, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #172554 0%, var(--bg) 45%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .app {
+      width: min(960px, 100%);
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.95), rgba(17, 24, 39, 0.85));
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 2.3vw, 2rem);
+      color: #7dd3fc;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .upload-box {
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 14px;
+    }
+
+    .upload-box label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      color: var(--text);
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .run-btn {
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      padding: 0 18px;
+      background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+      color: #032036;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.2s ease;
+    }
+
+    .run-btn:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .run-btn:active {
+      transform: translateY(0);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 10px;
+      margin: 0 0 16px;
+    }
+
+    .summary-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+    }
+
+    .summary-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .results {
+      max-height: 56vh;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.88);
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px 0;
+    }
+
+    .result-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: var(--panel);
+    }
+
+    .result-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .key-name {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .status-badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.74rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .detail-list,
+    .suggestion-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .detail-list li,
+    .suggestion-list li {
+      margin: 5px 0;
+      line-height: 1.3;
+    }
+
+
+    .suggestion-list li {
+      color: #7dd3fc;
+    }
+
+    .section-label {
+      margin: 8px 0 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #cbd5e1;
+      text-transform: uppercase;
+    }
+
+    .status-error {
+      border-color: rgba(239, 68, 68, 0.45);
+      background: linear-gradient(180deg, rgba(69, 10, 10, 0.8), rgba(17, 24, 39, 0.9));
+    }
+    .status-error .status-badge {
+      background: var(--red-soft);
+      color: #fecaca;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+    }
+
+    .status-warning {
+      border-color: rgba(250, 204, 21, 0.35);
+      background: linear-gradient(180deg, rgba(66, 32, 6, 0.8), rgba(17, 24, 39, 0.9));
+    }
+    .status-warning .status-badge {
+      background: var(--yellow-soft);
+      color: #fef08a;
+      border: 1px solid rgba(250, 204, 21, 0.45);
+    }
+
+    .status-success {
+      border-color: rgba(34, 197, 94, 0.4);
+      background: linear-gradient(180deg, rgba(5, 46, 22, 0.8), rgba(17, 24, 39, 0.9));
+    }
+    .status-success .status-badge {
+      background: var(--green-soft);
+      color: #bbf7d0;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+    }
+
+    .status-info {
+      border-color: rgba(56, 189, 248, 0.45);
+      background: linear-gradient(180deg, rgba(12, 74, 110, 0.75), rgba(17, 24, 39, 0.9));
+    }
+    .status-info .status-badge {
+      background: var(--blue-soft);
+      color: #bae6fd;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+    }
+
+    @media (max-width: 700px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .run-btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
   <h1>S-TEPAR Lite</h1>
+  <main class="app">
+    <h1 class="title">S-TEPAR Lite Localization QA</h1>
+    <p class="subtitle">Upload your localization JSON and run quality checks with a structured dashboard view.</p>
 
   <input type="file" id="fileInput" />
   <button onclick="handleFile()">Run QA Check</button>
+    <section class="controls">
+      <div class="upload-box">
+        <label for="fileInput">Localization JSON file</label>
+        <input type="file" id="fileInput" accept="application/json" />
+      </div>
+      <button class="run-btn" onclick="handleFile()">Run QA Check</button>
+    </section>
 
   <pre id="output"></pre>
+    <section id="summary" class="summary" aria-live="polite"></section>
 
   <style>
   body {
@@ -117,22 +394,201 @@ else {
   results.push(`✅ ${key}`);
 }
         }
+    <section id="results" class="results" aria-live="polite">
+      <div class="empty">Results will appear here after running QA.</div>
+    </section>
+  </main>
+
+  <script>
+    function extractPlaceholders(text) {
+      const regex = /{[^}]+}|%[sd]/g;
+      return text.match(regex) || [];
+    }
+
+    function calculateExpansion(source, target) {
+      if (!source) return 0;
+      return ((target.length - source.length) / source.length) * 100;
+    }
 
         // ✅ SUMMARY GOES HERE
         results.push("\n--- QA SUMMARY ---");
         results.push(`Missing: ${issueCounts.missing}`);
         results.push(`Mismatches: ${issueCounts.mismatch}`);
         results.push(`Expansion Issues: ${issueCounts.expansion}`);
+    function createResultCard(item) {
+      const card = document.createElement('article');
+      card.className = `result-card status-${item.statusClass}`;
 
         document.getElementById('output').textContent = results.join('\n');
+      const detailMarkup = item.details.map((detail) => `<li>${detail}</li>`).join('');
+      const suggestionMarkup = item.suggestions.length
+        ? `
+          <p class="section-label">Suggestions</p>
+          <ul class="suggestion-list">${item.suggestions.map((s) => `<li>${s}</li>`).join('')}</ul>
+        `
+        : '';
 
       } catch (err) {
         document.getElementById('output').textContent = "❌ Invalid JSON format.";
+      card.innerHTML = `
+        <div class="result-head">
+          <div class="key-name">${item.key}</div>
+          <span class="status-badge">${item.statusLabel}</span>
+        </div>
+        <p class="section-label">Details</p>
+        <ul class="detail-list">${detailMarkup}</ul>
+        ${suggestionMarkup}
+      `;
+
+      return card;
+    }
+
+    function renderSummary(issueCounts) {
+      const summary = document.getElementById('summary');
+      summary.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-label">Missing</div>
+          <div class="summary-value">${issueCounts.missing}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Mismatches</div>
+          <div class="summary-value">${issueCounts.mismatch}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Expansion Issues</div>
+          <div class="summary-value">${issueCounts.expansion}</div>
+        </div>
+      `;
+    }
+
+    function renderResults(results) {
+      const resultsContainer = document.getElementById('results');
+      resultsContainer.innerHTML = '';
+
+      if (!results.length) {
+        resultsContainer.innerHTML = '<div class="empty">No keys found in the uploaded JSON.</div>';
+        return;
+      }
+
+      results.forEach((result) => {
+        resultsContainer.appendChild(createResultCard(result));
+      });
+    }
+
+    function handleFile() {
+      const file = document.getElementById('fileInput').files[0];
+
+      if (!file) {
+        alert('Please upload a file.');
+        return;
       }
     };
 
     reader.readAsText(file);
   }
 </script>
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        try {
+          const content = event.target.result;
+          const data = JSON.parse(content);
+
+          const results = [];
+
+          const issueCounts = {
+            missing: 0,
+            mismatch: 0,
+            expansion: 0
+          };
+
+          for (const key in data) {
+            const source = data[key].source || '';
+            const target = data[key].target || '';
+
+            const sourcePH = extractPlaceholders(source);
+            const targetPH = extractPlaceholders(target);
+
+            const missingPH = sourcePH.filter((p) => !targetPH.includes(p));
+            const extraPH = targetPH.filter((p) => !sourcePH.includes(p));
+
+            const expansion = calculateExpansion(source, target).toFixed(1);
+
+            if (!target) {
+              issueCounts.missing++;
+              results.push({
+                key,
+                statusLabel: 'Error',
+                statusClass: 'error',
+                details: ['Missing translation.'],
+                suggestions: [`Provide a translation for "${source}".`]
+              });
+            }
+            else if (missingPH.length > 0 || extraPH.length > 0) {
+              issueCounts.mismatch++;
+
+              const details = [
+                `Placeholder mismatch detected. Missing: [${missingPH.join(', ')}] Extra: [${extraPH.join(', ')}].`
+              ];
+
+              const suggestions = [];
+              if (missingPH.length > 0) {
+                suggestions.push(`Add missing placeholders ${missingPH.join(', ')} to target.`);
+              }
+              if (extraPH.length > 0) {
+                suggestions.push(`Remove extra placeholders ${extraPH.join(', ')} from target.`);
+              }
+
+              results.push({
+                key,
+                statusLabel: 'Error',
+                statusClass: 'error',
+                details,
+                suggestions
+              });
+            }
+            else if (source.length > 10 && expansion > 30) {
+              issueCounts.expansion++;
+              results.push({
+                key,
+                statusLabel: 'Warning',
+                statusClass: 'warning',
+                details: [`Expansion is high at ${expansion}%.`],
+                suggestions: ['Shorten translation or adjust UI constraints.']
+              });
+            }
+            else if (sourcePH.length > 0) {
+              results.push({
+                key,
+                statusLabel: 'Warning',
+                statusClass: 'warning',
+                details: [`Placeholders are present and aligned: ${sourcePH.join(', ')}.`],
+                suggestions: ['Keep placeholder formatting consistent across locales.']
+              });
+            }
+            else {
+              results.push({
+                key,
+                statusLabel: 'Success',
+                statusClass: 'success',
+                details: ['Translation check passed.'],
+                suggestions: []
+              });
+            }
+          }
+
+          renderSummary(issueCounts);
+          renderResults(results);
+        }
+        catch (err) {
+          renderSummary({ missing: '-', mismatch: '-', expansion: '-' });
+          document.getElementById('results').innerHTML =
+            '<div class="result-card status-error"><div class="result-head"><div class="key-name">Invalid Input</div><span class="status-badge">Error</span></div><p class="section-label">Details</p><ul class="detail-list"><li>Invalid JSON format.</li></ul></div>';
+        }
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
 </body>
 </html>
