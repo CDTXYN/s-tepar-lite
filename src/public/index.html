@@ -393,17 +393,37 @@
     return { results, issueCounts };
   }
 
-  function createResultCard(item) {
-    const card = document.createElement('article');
-    card.className = `result-card status-${item.statusClass}`;
+ function createResultCard(item) {
+  const card = document.createElement('article');
+  card.className = `result-card status-${item.statusClass}`;
 
-    const detailMarkup = item.details.map(d => `<li>${d}</li>`).join('');
-    const suggestionMarkup = item.suggestions.length
-      ? `
-        <p class="section-label">Suggestions</p>
-        <ul class="suggestion-list">${item.suggestions.map(s => `<li>${s}</li>`).join('')}</ul>
-      `
-      : '';
+  const detailMarkup = item.details
+    .map(d => `<li>${d}</li>`)
+    .join('');
+
+  const suggestionMarkup = item.suggestions.length
+    ? `
+      <p class="section-label">Suggestions</p>
+      <ul class="suggestion-list">
+        ${item.suggestions.map(s => `<li>${s}</li>`).join('')}
+      </ul>
+    `
+    : '';
+
+  card.innerHTML = `
+    <div class="result-head">
+      <div class="key-name">${item.key}</div>
+      <span class="status-badge">${item.statusLabel}</span>
+    </div>
+    <p class="section-label">Details</p>
+    <ul class="detail-list">
+      ${detailMarkup}
+    </ul>
+    ${suggestionMarkup}
+  `;
+
+  return card;
+}
 
     card.innerHTML = `
       <div class="result-head">
