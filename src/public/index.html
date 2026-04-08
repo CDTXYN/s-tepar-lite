@@ -290,183 +290,190 @@
   </main>
 
   <script>
-    function extractPlaceholders(text) {
-      const regex = /{[^}]+}|%[sd]/g;
-      return text.match(regex) || [];
-    }
+  function extractPlaceholders(text) {
+    const regex = /{[^}]+}|%[sd]/g;
+    return text.match(regex) || [];
+  }
 
-    function calculateExpansion(source, target) {
-      if (!source) return 0;
-      return ((target.length - source.length) / source.length) * 100;
-    }
+  function calculateExpansion(source, target) {
+    if (!source) return 0;
+    return ((target.length - source.length) / source.length) * 100;
+  }
 
-    function createResultCard(item) {
-      const card = document.createElement('article');
-      card.className = `result-card status-${item.statusClass}`;
+  // 🧠 NEW: Core QA engine (clean separation)
+  function runQACheck(data) {
+    const results = [];
 
-      const detailMarkup = item.details.map((detail) => `<li>${detail}</li>`).join('');
-      const suggestionMarkup = item.suggestions.length
-        ? `
-          <p class="section-label">Suggestions</p>
-          <ul class="suggestion-list">${item.suggestions.map((s) => `<li>${s}</li>`).join('')}</ul>
-        `
-        : '';
+    const issueCounts = {
+      missing: 0,
+      mismatch: 0,
+      expansion: 0
+    };
 
-      card.innerHTML = `
-        <div class="result-head">
-          <div class="key-name">${item.key}</div>
-          <span class="status-badge">${item.statusLabel}</span>
-        </div>
-        <p class="section-label">Details</p>
-        <ul class="detail-list">${detailMarkup}</ul>
-        ${suggestionMarkup}
-      `;
+    for (const key in data) {
+      const source = data[key].source || '';
+      const target = data[key].target || '';
 
-      return card;
-    }
+      const sourcePH = extractPlaceholders(source);
+      const targetPH = extractPlaceholders(target);
 
-    function renderSummary(issueCounts) {
-      const summary = document.getElementById('summary');
-      summary.innerHTML = `
-        <div class="summary-card">
-          <div class="summary-label">Missing</div>
-          <div class="summary-value">${issueCounts.missing}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Mismatches</div>
-          <div class="summary-value">${issueCounts.mismatch}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Expansion Issues</div>
-          <div class="summary-value">${issueCounts.expansion}</div>
-        </div>
-      `;
-    }
+      const missingPH = sourcePH.filter(p => !targetPH.includes(p));
+      const extraPH = targetPH.filter(p => !sourcePH.includes(p));
 
-    function renderResults(results) {
-      const resultsContainer = document.getElementById('results');
-      resultsContainer.innerHTML = '';
+      const expansionRaw = calculateExpansion(source, target);
+      const expansion = Number(expansionRaw.toFixed(1));
 
-      if (!results.length) {
-        resultsContainer.innerHTML = '<div class="empty">No keys found in the uploaded JSON.</div>';
-        return;
-      }
-
-      results.forEach((result) => {
-        resultsContainer.appendChild(createResultCard(result));
-      });
-    }
-
-    function handleFile() {
-      const file = document.getElementById('fileInput').files[0];
-
-      if (!file) {
-        alert('Please upload a file.');
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = function(event) {
-        try {
-          const content = event.target.result;
-          const data = JSON.parse(content);
-
-          const results = [];
-
-          const issueCounts = {
-            missing: 0,
-            mismatch: 0,
-            expansion: 0
-          };
-
-          for (const key in data) {
-            const source = data[key].source || '';
-            const target = data[key].target || '';
-
-            const sourcePH = extractPlaceholders(source);
-            const targetPH = extractPlaceholders(target);
-
-            const missingPH = sourcePH.filter((p) => !targetPH.includes(p));
-            const extraPH = targetPH.filter((p) => !sourcePH.includes(p));
-
-            const expansion = calculateExpansion(source, target).toFixed(1);
-
-            if (!target) {
-              issueCounts.missing++;
-              results.push({
-                key,
-                statusLabel: 'Error',
-                statusClass: 'error',
-                details: ['Missing translation.'],
-                suggestions: [`Provide a translation for "${source}".`]
-              });
-            }
-            else if (missingPH.length > 0 || extraPH.length > 0) {
-              issueCounts.mismatch++;
-
-              const details = [
-                `Placeholder mismatch detected. Missing: [${missingPH.join(', ')}] Extra: [${extraPH.join(', ')}].`
-              ];
-
-              const suggestions = [];
-              if (missingPH.length > 0) {
-                suggestions.push(`Add missing placeholders ${missingPH.join(', ')} to target.`);
-              }
-              if (extraPH.length > 0) {
-                suggestions.push(`Remove extra placeholders ${extraPH.join(', ')} from target.`);
-              }
-
-              results.push({
-                key,
-                statusLabel: 'Error',
-                statusClass: 'error',
-                details,
-                suggestions
-              });
-            }
-            else if (source.length > 10 && expansion > 30) {
-              issueCounts.expansion++;
-              results.push({
-                key,
-                statusLabel: 'Warning',
-                statusClass: 'warning',
-                details: [`Expansion is high at ${expansion}%.`],
-                suggestions: ['Shorten translation or adjust UI constraints.']
-              });
-            }
-            else if (sourcePH.length > 0) {
-              results.push({
-                key,
-                statusLabel: 'Warning',
-                statusClass: 'warning',
-                details: [`Placeholders are present and aligned: ${sourcePH.join(', ')}.`],
-                suggestions: ['Keep placeholder formatting consistent across locales.']
-              });
-            }
-            else {
-              results.push({
-                key,
-                statusLabel: 'Success',
-                statusClass: 'success',
-                details: ['Translation check passed.'],
-                suggestions: []
-              });
-            }
-          }
-
-          renderSummary(issueCounts);
-          renderResults(results);
-        }
-        catch (err) {
-          renderSummary({ missing: '-', mismatch: '-', expansion: '-' });
-          document.getElementById('results').innerHTML =
-            '<div class="result-card status-error"><div class="result-head"><div class="key-name">Invalid Input</div><span class="status-badge">Error</span></div><p class="section-label">Details</p><ul class="detail-list"><li>Invalid JSON format.</li></ul></div>';
-        }
+      let result = {
+        key,
+        statusLabel: '',
+        statusClass: '',
+        details: [],
+        suggestions: []
       };
 
-      reader.readAsText(file);
+      // 🔴 Priority 1 — Missing
+      if (!target) {
+        issueCounts.missing++;
+        result.statusLabel = 'Error';
+        result.statusClass = 'error';
+        result.details.push('Missing translation.');
+        result.suggestions.push(`Provide a translation for "${source}".`);
+      }
+
+      // 🔴 Priority 2 — Placeholder mismatch
+      else if (missingPH.length > 0 || extraPH.length > 0) {
+        issueCounts.mismatch++;
+
+        result.statusLabel = 'Error';
+        result.statusClass = 'error';
+
+        result.details.push(
+          `Placeholder mismatch. Missing: [${missingPH.join(', ')}] Extra: [${extraPH.join(', ')}].`
+        );
+
+        if (missingPH.length > 0) {
+          result.suggestions.push(`Add missing placeholders ${missingPH.join(', ')}.`);
+        }
+        if (extraPH.length > 0) {
+          result.suggestions.push(`Remove extra placeholders ${extraPH.join(', ')}.`);
+        }
+      }
+
+      // 🟡 Priority 3 — Expansion risk
+      else if (source.length > 10 && expansion > 30) {
+        issueCounts.expansion++;
+
+        result.statusLabel = 'Warning';
+        result.statusClass = 'warning';
+
+        result.details.push(`Expansion risk: ${expansion}%.`);
+        result.suggestions.push('Shorten translation or adjust UI constraints.');
+      }
+
+      // 🟡 Priority 4 — Placeholder OK
+      else if (sourcePH.length > 0) {
+        result.statusLabel = 'Info';
+        result.statusClass = 'info';
+
+        result.details.push(`Placeholders aligned: ${sourcePH.join(', ')}.`);
+        result.suggestions.push('Maintain placeholder consistency.');
+      }
+
+      // 🟢 Clean
+      else {
+        result.statusLabel = 'Success';
+        result.statusClass = 'success';
+
+        result.details.push('Translation check passed.');
+      }
+
+      results.push(result);
     }
-  </script>
+
+    return { results, issueCounts };
+  }
+
+  function createResultCard(item) {
+    const card = document.createElement('article');
+    card.className = `result-card status-${item.statusClass}`;
+
+    const detailMarkup = item.details.map(d => `<li>${d}</li>`).join('');
+    const suggestionMarkup = item.suggestions.length
+      ? `
+        <p class="section-label">Suggestions</p>
+        <ul class="suggestion-list">${item.suggestions.map(s => `<li>${s}</li>`).join('')}</ul>
+      `
+      : '';
+
+    card.innerHTML = `
+      <div class="result-head">
+        <div class="key-name">${item.key}</div>
+        <span class="status-badge">${item.statusLabel}</span>
+      </div>
+      <p class="section-label">Details</p>
+      <ul class="detail-list">${detailMarkup}</ul>
+      ${suggestionMarkup}
+    `;
+
+    return card;
+  }
+
+  function renderSummary(issueCounts) {
+    document.getElementById('summary').innerHTML = `
+      <div class="summary-card">
+        <div class="summary-label">Missing</div>
+        <div class="summary-value">${issueCounts.missing}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Mismatches</div>
+        <div class="summary-value">${issueCounts.mismatch}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Expansion Issues</div>
+        <div class="summary-value">${issueCounts.expansion}</div>
+      </div>
+    `;
+  }
+
+  function renderResults(results) {
+    const container = document.getElementById('results');
+    container.innerHTML = '';
+
+    if (!results.length) {
+      container.innerHTML = '<div class="empty">No keys found.</div>';
+      return;
+    }
+
+    results.forEach(r => container.appendChild(createResultCard(r)));
+  }
+
+  function handleFile() {
+    const file = document.getElementById('fileInput').files[0];
+
+    if (!file) {
+      alert('Please upload a file.');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+      try {
+        const data = JSON.parse(event.target.result);
+
+        const { results, issueCounts } = runQACheck(data);
+
+        renderSummary(issueCounts);
+        renderResults(results);
+      } catch (err) {
+        renderSummary({ missing: '-', mismatch: '-', expansion: '-' });
+        document.getElementById('results').innerHTML =
+          '<div class="result-card status-error"><div class="key-name">Invalid JSON</div></div>';
+      }
+    };
+
+    reader.readAsText(file);
+  }
+</script>
 </body>
 </html>
