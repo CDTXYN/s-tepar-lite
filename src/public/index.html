@@ -25,6 +25,10 @@
       alert("Please upload a file.");
       return;
     }
+    function calculateExpansion(source, target) {
+  if (!source) return 0;
+  return ((target.length - source.length) / source.length) * 100;
+    }
 
     const reader = new FileReader();
 
@@ -51,15 +55,20 @@
           const missing = sourcePH.filter(p => !targetPH.includes(p));
           const extra = targetPH.filter(p => !sourcePH.includes(p));
 
-          if (missing.length > 0 || extra.length > 0) {
-            results.push(`❌ ${key} mismatch → Missing: [${missing}] Extra: [${extra}]`);
-          } else if (sourcePH.length > 0) {
-            results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
-          } else {
-            results.push(`✅ ${key}`);
-          }
-        }
+         const expansion = calculateExpansion(source, target).toFixed(1);
 
+if (!target) {
+  results.push(`❌ Missing translation for key: ${key}`);
+} else if (missing.length > 0 || extra.length > 0) {
+  results.push(`❌ ${key} mismatch → Missing: [${missing}] Extra: [${extra}]`);
+} else if (expansion > 30) {
+  results.push(`⚠️ ${key} expansion high: ${expansion}%`);
+} else if (sourcePH.length > 0) {
+  results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
+} else {
+  results.push(`✅ ${key}`);
+}
+        }
         document.getElementById('output').textContent = results.join('\n');
 
       } catch (err) {
