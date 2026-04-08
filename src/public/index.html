@@ -1,46 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>S-TEPAR Lite</title>
-</head>
-<body>
-  <h1>S-TEPAR Lite</h1>
+<script>
+  function extractPlaceholders(text) {
+    const regex = /{[^}]+}|%[sd]/g;
+    return text.match(regex) || [];
+  }
 
-  <input type="file" id="fileInput" />
-  <button onclick="handleFile()">Run QA Check</button>
+  function handleFile() {
+    const file = document.getElementById('fileInput').files[0];
 
-  <pre id="output"></pre>
+    if (!file) {
+      alert("Please upload a file.");
+      return;
+    }
 
-  <script>
-    function handleFile() {
-      const file = document.getElementById('fileInput').files[0];
+    const reader = new FileReader();
 
-      if (!file) {
-        alert("Please upload a file.");
-        return;
-      }
+    reader.onload = function(event) {
+      const content = event.target.result;
+      const data = JSON.parse(content);
 
-      const reader = new FileReader();
+      const results = [];
 
-      reader.onload = function(event) {
-        const content = event.target.result;
-        const data = JSON.parse(content);
+      for (const key in data) {
+        const value = data[key];
 
-        const results = [];
-
-        for (const key in data) {
-          if (!data[key]) {
-            results.push(`❌ Missing value for key: ${key}`);
-          } else {
-            results.push(`✅ ${key}`);
-          }
+        // Missing value check
+        if (!value) {
+          results.push(`❌ Missing value for key: ${key}`);
+          continue;
         }
 
-        document.getElementById('output').textContent = results.join('\n');
-      };
+        // Placeholder detection
+        const placeholders = extractPlaceholders(value);
 
-      reader.readAsText(file);
-    }
-  </script>
-</body>
-</html>
+        if (placeholders.length > 0) {
+          results.push(`⚠️ ${key} contains placeholders: ${placeholders.join(", ")}`);
+        } else {
+          results.push(`✅ ${key}`);
+        }
+      }
+
+      document.getElementById('output').textContent = results.join('\n');
+    };
+
+    reader.readAsText(file);
+  }
+</script>
