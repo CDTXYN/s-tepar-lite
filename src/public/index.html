@@ -56,17 +56,21 @@
           const extra = targetPH.filter(p => !sourcePH.includes(p));
 
          const expansion = calculateExpansion(source, target).toFixed(1);
+          const issueCounts = {
+  missing: 0,
+  mismatch: 0,
+  expansion: 0
+};
 
 if (!target) {
+  issueCounts.missing++;
   results.push(`❌ Missing translation for key: ${key}`);
 } else if (missing.length > 0 || extra.length > 0) {
+  issueCounts.mismatch++;
   results.push(`❌ ${key} mismatch → Missing: [${missing}] Extra: [${extra}]`);
 } else if (expansion > 30) {
+  issueCounts.expansion++;
   results.push(`⚠️ ${key} expansion high: ${expansion}%`);
-} else if (sourcePH.length > 0) {
-  results.push(`⚠️ ${key} placeholders OK: ${sourcePH.join(", ")}`);
-} else {
-  results.push(`✅ ${key}`);
 }
         }
         document.getElementById('output').textContent = results.join('\n');
