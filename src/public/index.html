@@ -1,47 +1,67 @@
-<script>
-  function extractPlaceholders(text) {
-    const regex = /{[^}]+}|%[sd]/g;
-    return text.match(regex) || [];
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>S-TEPAR Lite</title>
+</head>
+<body>
+  <h1>S-TEPAR Lite</h1>
 
-  function handleFile() {
-    const file = document.getElementById('fileInput').files[0];
+  <input type="file" id="fileInput" />
+  <button onclick="handleFile()">Run QA Check</button>
 
-    if (!file) {
-      alert("Please upload a file.");
-      return;
+  <pre id="output"></pre>
+
+  <script>
+    function extractPlaceholders(text) {
+      const regex = /{[^}]+}|%[sd]/g;
+      return text.match(regex) || [];
     }
 
-    const reader = new FileReader();
+    function handleFile() {
+      const file = document.getElementById('fileInput').files[0];
 
-    reader.onload = function(event) {
-      const content = event.target.result;
-      const data = JSON.parse(content);
-
-      const results = [];
-
-      for (const key in data) {
-        const value = data[key];
-
-        // Missing value check
-        if (!value) {
-          results.push(`❌ Missing value for key: ${key}`);
-          continue;
-        }
-
-        // Placeholder detection
-        const placeholders = extractPlaceholders(value);
-
-        if (placeholders.length > 0) {
-          results.push(`⚠️ ${key} contains placeholders: ${placeholders.join(", ")}`);
-        } else {
-          results.push(`✅ ${key}`);
-        }
+      if (!file) {
+        alert("Please upload a file.");
+        return;
       }
 
-      document.getElementById('output').textContent = results.join('\n');
-    };
+      const reader = new FileReader();
 
-    reader.readAsText(file);
-  }
-</script>
+      reader.onload = function(event) {
+        try {
+          const content = event.target.result;
+          const data = JSON.parse(content);
+
+          const results = [];
+
+          for (const key in data) {
+            const value = data[key];
+
+            // Missing value check
+            if (!value) {
+              results.push(`❌ Missing value for key: ${key}`);
+              continue;
+            }
+
+            // Placeholder detection
+            const placeholders = extractPlaceholders(value);
+
+            if (placeholders.length > 0) {
+              results.push(`⚠️ ${key} contains placeholders: ${placeholders.join(", ")}`);
+            } else {
+              results.push(`✅ ${key}`);
+            }
+          }
+
+          document.getElementById('output').textContent = results.join('\n');
+        } catch (err) {
+          document.getElementById('output').textContent = "❌ Invalid JSON file.";
+        }
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
